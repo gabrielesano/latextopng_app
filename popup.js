@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let pendingSvgBlobUrl = null; // track SVG blob URL for leak prevention
     let currentLatex = '';
     let renderGeneration = 0;    // incremented on each render; guards stale async callbacks
+    let currentZoom = 1.0;
 
     // Defaults
     let settings = {
@@ -93,6 +94,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const draft = lsGet('draft');
         if (draft) latexInput.value = draft;
         applyTheme(lsGet('theme') || 'system');
+        applyZoom(lsGet('zoom') || 1.0);
         callback();
     }
 
@@ -103,6 +105,30 @@ document.addEventListener('DOMContentLoaded', function () {
         const val = latexInput.value;
         if (val) { lsSet('draft', val); } else { lsRemove('draft'); }
     }
+
+    // ===================== Zoom =====================
+    const ZOOM_STEP = 0.1;
+    const ZOOM_MIN  = 0.5;
+    const ZOOM_MAX  = 2.0;
+    function applyZoom(z) {
+        currentZoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, Math.round(z * 10) / 10));
+        document.body.style.zoom = currentZoom;
+        lsSet('zoom', currentZoom);
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (!e.ctrlKey) return;
+        if (e.key === '=' || e.key === '+') {
+            e.preventDefault();
+            applyZoom(currentZoom + ZOOM_STEP);
+        } else if (e.key === '-') {
+            e.preventDefault();
+            applyZoom(currentZoom - ZOOM_STEP);
+        } else if (e.key === '0') {
+            e.preventDefault();
+            applyZoom(1.0);
+        }
+    });
 
     // ===================== Settings UI =====================
     function applySettingsToUI() {
@@ -353,7 +379,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         pendingSvgBlobUrl = null;
 
                         updateBookmarkCurrentBtn();
-                    }, 'image/png');
+                                }, 'image/png');
                 };
 
                 image.onerror = () => {
