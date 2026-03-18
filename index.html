@@ -8,6 +8,14 @@
 <body>
     <div class="popup-header">
         <h2>LaTeX to PNG Converter</h2>
+        <button id="infoBtn" class="open-tab-btn" title="Keyboard shortcuts &amp; info (Ctrl+I)" aria-label="Keyboard shortcuts and info">
+            <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor"
+                 stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="8" cy="8" r="7"/>
+                <line x1="8" y1="7.5" x2="8" y2="11.5"/>
+                <circle cx="8" cy="4.5" r="0.75" fill="currentColor" stroke="none"/>
+            </svg>
+        </button>
         <button id="themeToggleBtn" class="open-tab-btn" title="Theme: System (follows OS)" aria-label="Theme: System (follows OS)">
             <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor"
                  stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -90,6 +98,46 @@
     </div>
 
     <div id="mathjax-container" style="display: none;"></div>
+
+    <!-- Info / shortcuts overlay -->
+    <div id="infoOverlay" class="info-overlay" role="dialog" aria-modal="true" aria-labelledby="infoPanelTitle">
+        <div class="info-panel">
+            <button id="infoCloseBtn" class="info-close" aria-label="Close">✕</button>
+
+            <h3 id="infoPanelTitle">LaTeX to PNG <span class="info-version">v0.1.0</span></h3>
+            <p class="info-desc">Convert LaTeX math expressions to high-resolution transparent PNGs</p>
+
+            <h4>Keyboard Shortcuts</h4>
+            <div class="shortcuts-grid">
+                <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>S</kbd></span>
+                <span>Download PNG</span>
+                <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>C</kbd></span>
+                <span>Copy image to clipboard</span>
+                <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>B</kbd></span>
+                <span>Toggle bookmark</span>
+                <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>I</kbd></span>
+                <span>Show / hide this panel</span>
+                <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>+</kbd></span>
+                <span>Zoom in</span>
+                <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>−</kbd></span>
+                <span>Zoom out</span>
+                <span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>0</kbd></span>
+                <span>Reset zoom</span>
+            </div>
+
+            <h4>Features</h4>
+            <ul class="features-list">
+                <li>Live preview with MathJax</li>
+                <li>Configurable DPI (150 / 300 / 600)</li>
+                <li>Transparent background</li>
+                <li>Customizable text color and padding</li>
+                <li>Light / Dark theme</li>
+                <li>History and bookmarks</li>
+                <li>Bracket and environment auto-completion</li>
+                <li>LaTeX command autocomplete</li>
+            </ul>
+        </div>
+    </div>
 
     <script>
         window.MathJax = {

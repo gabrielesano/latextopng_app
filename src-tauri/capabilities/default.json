@@ -8,8 +8,6 @@
   "permissions": [
     "core:default",
     "dialog:allow-save",
-    "core:window:allow-set-size",
-    "core:window:allow-outer-size",
-    "core:window:allow-inner-size"
+    "core:window:allow-set-size"
   ]
 }

@@ -34,44 +34,7 @@
     --shadow-dropdown:        0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-@media (prefers-color-scheme: dark) {
-    html:not([data-theme="light"]) {
-        /* Surfaces */
-        --color-bg:               #18181b;   /* zinc-950 */
-        --color-surface:          #27272a;   /* zinc-800 */
-        --color-surface-muted:    #313136;   /* slightly above surface */
-        --color-surface-hover:    #4a4a52;   /* hover state */
-        --color-surface-tint:     #1c2f4a;   /* dark blue tint */
-        --color-bookmark-bg:      #292008;   /* dark warm amber */
-
-        /* Borders */
-        --color-border:           #3f3f46;   /* zinc-700 */
-        --color-border-input:     #52525b;   /* zinc-600 */
-        --color-border-subtle:    #2d2d32;   /* very faint separator */
-
-        /* Text */
-        --color-text:             #e4e4e7;   /* zinc-200 */
-        --color-text-secondary:   #a1a1aa;   /* zinc-400 */
-        --color-text-muted:       #71717a;   /* zinc-500 */
-        --color-text-placeholder: #52525b;   /* zinc-600 */
-
-        /* Primary — blue-500 works as btn bg (white text ~4.5:1) and accent on dark */
-        --color-primary:          #3b82f6;
-        --color-primary-hover:    #60a5fa;   /* blue-400 */
-        --color-primary-muted:    #93c5fd;   /* blue-300, hint text */
-        --color-primary-shadow:   rgba(59, 130, 246, 0.35);
-
-        /* Semantic */
-        --color-success:          #34d399;   /* emerald-400 */
-        --color-danger:           #f87171;   /* red-400 */
-        --color-bookmark:         #fbbf24;   /* amber-400 */
-
-        /* Shadows */
-        --shadow-dropdown:        0 2px 12px rgba(0, 0, 0, 0.5);
-    }
-}
-
-/* Forced dark — overrides system preference when data-theme="dark" is set on <html> */
+/* Forced dark — set when data-theme="dark" is set on <html> */
 html[data-theme="dark"] {
     --color-bg:               #18181b;
     --color-surface:          #27272a;
@@ -103,11 +66,21 @@ html[data-theme="dark"] {
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     width: 480px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
     overflow-y: auto;
     padding: 15px;
     background-color: var(--color-bg);
     color: var(--color-text);
-    margin: 0;
+    margin: 0 auto;
+}
+/* Ensure all direct children fill the full 480px body width;
+   align-items: center would otherwise shrink them to fit-content. */
+body > * {
+    width: 100%;
 }
 .popup-header {
     display: flex;
@@ -431,6 +404,114 @@ textarea {
 }
 .latex-ac-item.active .ac-args {
     color: var(--color-primary-muted);
+}
+
+/* === Info Overlay === */
+.info-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+.info-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+.info-panel {
+    position: relative;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 24px 28px 20px;
+    width: 400px;
+    max-width: 90vw;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-dropdown);
+    transform: translateY(-10px);
+    transition: transform 0.2s ease;
+}
+.info-overlay.open .info-panel {
+    transform: translateY(0);
+}
+.info-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    color: var(--color-text-muted);
+    padding: 4px 6px;
+    border-radius: 4px;
+    line-height: 1;
+    transition: color 0.15s, background-color 0.15s;
+}
+.info-close:hover {
+    color: var(--color-text);
+    background-color: var(--color-surface-hover);
+}
+.info-panel h3 {
+    margin: 0 0 4px;
+    font-size: 16px;
+    color: var(--color-text);
+}
+.info-version {
+    font-size: 12px;
+    font-weight: normal;
+    color: var(--color-text-muted);
+    margin-left: 6px;
+}
+.info-desc {
+    margin: 0 0 16px;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+}
+.info-panel h4 {
+    margin: 0 0 8px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+}
+.shortcuts-grid {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 5px 16px;
+    align-items: center;
+    margin-bottom: 18px;
+    font-size: 13px;
+    color: var(--color-text);
+}
+.shortcut-keys {
+    display: flex;
+    gap: 3px;
+    align-items: center;
+    white-space: nowrap;
+}
+kbd {
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 11px;
+    background: var(--color-surface-muted);
+    border: 1px solid var(--color-border-input);
+    border-radius: 3px;
+    padding: 2px 5px;
+    color: var(--color-text);
+}
+.features-list {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    line-height: 1.7;
 }
 
 /* === Utility === */

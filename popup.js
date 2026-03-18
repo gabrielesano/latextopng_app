@@ -11,6 +11,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const errorMsg = document.getElementById('errorMsg');
     const openTabBtn = document.getElementById('openTabBtn');
     const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const infoBtn = document.getElementById('infoBtn');
+    const infoOverlay = document.getElementById('infoOverlay');
+    const infoCloseBtn = document.getElementById('infoCloseBtn');
 
     // Settings
     const colorSwatches = document.querySelectorAll('.color-swatch');
@@ -47,19 +50,17 @@ document.addEventListener('DOMContentLoaded', function () {
     let bookmarks = []; // [{ latex, timestamp }]
 
     // ===================== Theme =====================
-    let currentTheme = 'system'; // 'system' | 'light' | 'dark'
+    let currentTheme = 'light'; // 'light' | 'dark'
 
-    const THEME_CYCLE = { system: 'light', light: 'dark', dark: 'system' };
+    const THEME_CYCLE = { light: 'dark', dark: 'light' };
 
     const THEME_LABELS = {
-        system: 'Theme: System (follows OS)',
         light:  'Theme: Light',
         dark:   'Theme: Dark',
     };
 
     // SVG icon strings — one per state, rendered via innerHTML (static strings, no user data)
     const THEME_ICONS = {
-        system: '<svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="2" width="14" height="10" rx="1.5"/><polyline points="5,14 8,12 11,14"/></svg>',
         light:  '<svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="3"/><line x1="8" y1="1" x2="8" y2="3.5"/><line x1="8" y1="12.5" x2="8" y2="15"/><line x1="1" y1="8" x2="3.5" y2="8"/><line x1="12.5" y1="8" x2="15" y2="8"/><line x1="3.4" y1="3.4" x2="5.2" y2="5.2"/><line x1="10.8" y1="10.8" x2="12.6" y2="12.6"/><line x1="12.6" y1="3.4" x2="10.8" y2="5.2"/><line x1="5.2" y1="10.8" x2="3.4" y2="12.6"/></svg>',
         dark:   '<svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 10.5a6 6 0 0 1-7.5-7.5A6 6 0 1 0 13 10.5z"/></svg>',
     };
@@ -93,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function () {
         bookmarks = lsGet('bookmarks', []);
         const draft = lsGet('draft');
         if (draft) latexInput.value = draft;
-        applyTheme(lsGet('theme') || 'system');
+        applyTheme(lsGet('theme') || 'light');
         applyZoom(lsGet('zoom') || 1.0);
         callback();
     }
@@ -106,6 +107,16 @@ document.addEventListener('DOMContentLoaded', function () {
         if (val) { lsSet('draft', val); } else { lsRemove('draft'); }
     }
 
+    // ===================== Window Resize =====================
+    const BASE_WIDTH  = 720;
+    const BASE_HEIGHT = 960;
+
+    function setWindowSize(w, h) {
+        if (!window.__TAURI__?.window) return;
+        const { getCurrentWindow, LogicalSize } = window.__TAURI__.window;
+        getCurrentWindow().setSize(new LogicalSize(w, h));
+    }
+
     // ===================== Zoom =====================
     const ZOOM_STEP = 0.1;
     const ZOOM_MIN  = 0.5;
@@ -114,11 +125,41 @@ document.addEventListener('DOMContentLoaded', function () {
         currentZoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, Math.round(z * 10) / 10));
         document.body.style.zoom = currentZoom;
         lsSet('zoom', currentZoom);
+        setWindowSize(
+            Math.min(BASE_WIDTH  * currentZoom, window.screen.availWidth  * 0.9),
+            Math.min(BASE_HEIGHT * currentZoom, window.screen.availHeight * 0.9)
+        );
     }
 
+    // ===================== Info Panel =====================
+    function openInfoPanel()  { infoOverlay.classList.add('open'); }
+    function closeInfoPanel() { infoOverlay.classList.remove('open'); }
+    function toggleInfoPanel() { infoOverlay.classList.toggle('open'); }
+
+    infoBtn.addEventListener('click', toggleInfoPanel);
+    infoCloseBtn.addEventListener('click', closeInfoPanel);
+    infoOverlay.addEventListener('click', (e) => {
+        if (e.target === infoOverlay) closeInfoPanel();
+    });
+
+    // ===================== Global Keyboard Shortcuts =====================
     document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') { closeInfoPanel(); return; }
         if (!e.ctrlKey) return;
-        if (e.key === '=' || e.key === '+') {
+        const k = e.key.toLowerCase();
+        if (k === 's') {
+            e.preventDefault();
+            downloadBtn.click();
+        } else if (k === 'c' && e.shiftKey) {
+            e.preventDefault();
+            copyBtn.click();
+        } else if (k === 'b') {
+            e.preventDefault();
+            bookmarkCurrentBtn.click();
+        } else if (k === 'i') {
+            e.preventDefault();
+            toggleInfoPanel();
+        } else if (e.key === '=' || e.key === '+') {
             e.preventDefault();
             applyZoom(currentZoom + ZOOM_STEP);
         } else if (e.key === '-') {
@@ -787,7 +828,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     themeToggleBtn.addEventListener('click', () => {
-        const next = THEME_CYCLE[currentTheme] || 'system';
+        const next = THEME_CYCLE[currentTheme] || 'light';
         applyTheme(next);
         lsSet('theme', next);
     });
@@ -800,8 +841,9 @@ document.addEventListener('DOMContentLoaded', function () {
         applySettingsToUI();
         renderHistoryList();
         renderBookmarksList();
-        // Render initial equation
+        // Render initial equation and set window to known-good size
         setTimeout(renderLatex, 50);
+        setWindowSize(BASE_WIDTH, BASE_HEIGHT);
     });
 
     latexInput.focus();
