@@ -2,9 +2,9 @@
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "LaTeX-PNG Tauri App",
   "version": "0.1.0",
-  "identifier": "com.tauri.dev",
+  "identifier": "com.gabrielesano.latex-to-png",
   "build": {
-    "frontendDist": "../"
+    "frontendDist": "../ui"
   },
   "app": {
     "windows": [
