@@ -91,7 +91,13 @@
 
     <div id="mathjax-container" style="display: none;"></div>
 
-    <script src="mathjax-config.js"></script>
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+            svg: { fontCache: 'none' },
+            startup: { typeset: false }
+        };
+    </script>
     <script src="lib/tex-svg-full.js"></script>
     <script src="popup.js"></script>
 </body>

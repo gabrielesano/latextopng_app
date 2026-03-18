@@ -71,39 +71,37 @@ document.addEventListener('DOMContentLoaded', function () {
         themeToggleBtn.setAttribute('aria-label', THEME_LABELS[theme]);
     }
 
-    // ===================== Storage helpers =====================
-    // Guard against running outside the extension context (e.g. opening popup.html directly).
-    const storage = (typeof chrome !== 'undefined' && chrome.storage) ? chrome.storage.local : null;
+    // ===================== Storage helpers (localStorage) =====================
+    function lsGet(key, fallback = null) {
+        try {
+            const raw = localStorage.getItem(key);
+            return raw !== null ? JSON.parse(raw) : fallback;
+        } catch { return fallback; }
+    }
+    function lsSet(key, value) {
+        try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
+    }
+    function lsRemove(key) {
+        try { localStorage.removeItem(key); } catch {}
+    }
 
     function loadAll(callback) {
-        if (!storage) { applyTheme('system'); callback(); return; }
-        storage.get(['settings', 'history', 'bookmarks', 'draft', 'theme'], (data) => {
-            if (data.settings) settings = { ...settings, ...data.settings };
-            if (data.history) history = data.history;
-            if (data.bookmarks) bookmarks = data.bookmarks;
-            if (data.draft) latexInput.value = data.draft;
-            applyTheme(data.theme || 'system');
-            callback();
-        });
+        const saved = lsGet('settings');
+        if (saved) settings = { ...settings, ...saved };
+        history   = lsGet('history',   []);
+        bookmarks = lsGet('bookmarks', []);
+        const draft = lsGet('draft');
+        if (draft) latexInput.value = draft;
+        applyTheme(lsGet('theme') || 'system');
+        callback();
     }
 
-    function saveSettings() {
-        if (storage) storage.set({ settings });
-    }
-    function saveHistory() {
-        if (storage) storage.set({ history });
-    }
-    function saveBookmarks() {
-        if (storage) storage.set({ bookmarks });
-    }
+    function saveSettings()  { lsSet('settings',  settings);  }
+    function saveHistory()   { lsSet('history',   history);   }
+    function saveBookmarks() { lsSet('bookmarks', bookmarks); }
     function saveDraft() {
-        if (!storage) return;
         const val = latexInput.value;
-        if (val) {
-            storage.set({ draft: val });
-        } else {
-            storage.remove('draft');
-        }
+        if (val) { lsSet('draft', val); } else { lsRemove('draft'); }
     }
 
     // ===================== Settings UI =====================
@@ -718,20 +716,27 @@ document.addEventListener('DOMContentLoaded', function () {
         updateAutocomplete();
     });
 
-    downloadBtn.addEventListener('click', () => {
+    downloadBtn.addEventListener('click', async () => {
         if (!currentBlob) return;
-        const reader = new FileReader();
-        reader.onload = () => {
-            if (typeof chrome !== 'undefined' && chrome.runtime) {
-                chrome.runtime.sendMessage({
-                    action: 'download',
-                    dataUrl: reader.result,
-                    filename: 'latex_render.png'
-                });
+        if (!window.__TAURI__?.core?.invoke) {
+            console.error('Tauri invoke not available');
+            return;
+        }
+        try {
+            const arrayBuffer = await currentBlob.arrayBuffer();
+            const bytes = new Uint8Array(arrayBuffer);
+            // Encode to base64 in chunks to avoid stack overflow on large images
+            let binary = '';
+            const chunkSize = 8192;
+            for (let i = 0; i < bytes.length; i += chunkSize) {
+                binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
             }
-            addToHistory(currentLatex);
-        };
-        reader.readAsDataURL(currentBlob);
+            const base64 = btoa(binary);
+            const saved = await window.__TAURI__.core.invoke('save_png', { data: base64 });
+            if (saved) addToHistory(currentLatex);
+        } catch (err) {
+            console.error('save_png failed:', err);
+        }
     });
 
     copyBtn.addEventListener('click', async () => {
@@ -758,14 +763,11 @@ document.addEventListener('DOMContentLoaded', function () {
     themeToggleBtn.addEventListener('click', () => {
         const next = THEME_CYCLE[currentTheme] || 'system';
         applyTheme(next);
-        if (storage) storage.set({ theme: next });
+        lsSet('theme', next);
     });
 
-    openTabBtn.addEventListener('click', () => {
-        if (typeof chrome !== 'undefined' && chrome.tabs) {
-            chrome.tabs.create({ url: chrome.runtime.getURL('popup.html') + '?tab=1' });
-        }
-    });
+    // "Open in tab" is not applicable in a Tauri desktop window; hide the button.
+    openTabBtn.classList.add('hidden');
 
     // ===================== Init =====================
     loadAll(() => {
@@ -775,11 +777,6 @@ document.addEventListener('DOMContentLoaded', function () {
         // Render initial equation
         setTimeout(renderLatex, 50);
     });
-
-    // Hide the button when already running as a full tab (opened via the button itself)
-    if (new URLSearchParams(location.search).get('tab') === '1') {
-        openTabBtn.classList.add('hidden');
-    }
 
     latexInput.focus();
     latexInput.select();
