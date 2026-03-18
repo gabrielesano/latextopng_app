@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LaTeX to PNG</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="popup-header">
+        <h2>LaTeX to PNG Converter</h2>
+        <button id="themeToggleBtn" class="open-tab-btn" title="Theme: System (follows OS)" aria-label="Theme: System (follows OS)">
+            <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor"
+                 stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="1" y="2" width="14" height="10" rx="1.5"/>
+                <polyline points="5,14 8,12 11,14"/>
+            </svg>
+        </button>
+        <button id="openTabBtn" class="open-tab-btn" title="Open in new tab" aria-label="Open in new tab">
+            <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor"
+                 stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M7 3H3.5A1.5 1.5 0 0 0 2 4.5v8A1.5 1.5 0 0 0 3.5 14h8A1.5 1.5 0 0 0 13 12.5V9"/>
+                <polyline points="10,2 14,2 14,6"/>
+                <line x1="14" y1="2" x2="7" y2="9"/>
+            </svg>
+        </button>
+    </div>
+    
+    <textarea id="latexInput" rows="5"
+              aria-label="LaTeX expression"
+              spellcheck="false"
+              autocomplete="off"
+              autocorrect="off"
+              autocapitalize="off">\frac{n!}{k!(n-k)!} = \binom{n}{k}</textarea>
+    
+    <!-- Settings (collapsible) -->
+    <details id="settingsPanel" class="settings-panel">
+        <summary>Settings</summary>
+        <div class="settings-grid">
+            <label>Text color</label>
+            <div class="color-options">
+                <button class="color-swatch" data-color="#000000" style="background:#000000;" title="Black"></button>
+                <button class="color-swatch" data-color="#ffffff" style="background:#ffffff;" title="White"></button>
+                <button class="color-swatch" data-color="#1a73e8" style="background:#1a73e8;" title="Blue"></button>
+                <button class="color-swatch" data-color="#d93025" style="background:#d93025;" title="Red"></button>
+                <input type="color" id="customColor" value="#000000" title="Custom color">
+            </div>
+
+            <label for="dpiSelect">Resolution</label>
+            <select id="dpiSelect">
+                <option value="1.5625">150 DPI</option>
+                <option value="3.125">300 DPI</option>
+                <option value="6.25" selected>600 DPI</option>
+            </select>
+
+            <label for="paddingRange">Padding: <span id="paddingValue">20</span>px</label>
+            <input type="range" id="paddingRange" min="0" max="40" value="20">
+        </div>
+    </details>
+
+    <!-- Result preview -->
+    <div id="resultContainer" class="hidden">
+        <div class="preview-box">
+            <div id="loadingMsg" class="status-msg hidden" aria-live="polite">Rendering...</div>
+            <div id="errorMsg" class="status-msg error hidden" aria-live="assertive"></div>
+            <img id="resultImg" alt="Rendered LaTeX">
+        </div>
+    </div>
+    
+    <!-- Action buttons -->
+    <div id="actionButtons" class="action-buttons hidden">
+        <button id="downloadBtn" class="action-btn">Download PNG</button>
+        <button id="copyBtn" class="action-btn">Copy Image</button>
+        <button id="bookmarkCurrentBtn" class="action-btn bookmark-btn" title="Bookmark this equation">☆</button>
+    </div>
+
+    <!-- Tabs for History / Bookmarks -->
+    <div id="librarySection" class="library-section hidden">
+        <div class="tab-bar">
+            <button class="tab-btn active" data-tab="history">Recent</button>
+            <button class="tab-btn" data-tab="bookmarks">Bookmarks</button>
+        </div>
+        <div id="historyTab" class="tab-content active">
+            <ul id="historyList" class="eq-list"></ul>
+            <p class="empty-msg hidden" id="historyEmpty">No recent equations.</p>
+        </div>
+        <div id="bookmarksTab" class="tab-content">
+            <ul id="bookmarksList" class="eq-list"></ul>
+            <p class="empty-msg hidden" id="bookmarksEmpty">No bookmarked equations.</p>
+        </div>
+    </div>
+
+    <div id="mathjax-container" style="display: none;"></div>
+
+    <script src="mathjax-config.js"></script>
+    <script src="lib/tex-svg-full.js"></script>
+    <script src="popup.js"></script>
+</body>
+</html>
