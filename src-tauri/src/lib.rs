@@ -1,11 +1,15 @@
-use base64::{engine::general_purpose, Engine as _};
+use tauri::ipc::{InvokeBody, Request};
 use tauri_plugin_dialog::DialogExt;
 
+/// Asks the user where to save and writes the PNG there.
+///
+/// The frontend sends the PNG as a raw binary IPC body (`invoke('save_png', bytes)`),
+/// which avoids a base64 round-trip. Returns `false` if the user cancels the dialog.
 #[tauri::command]
-async fn save_png(app: tauri::AppHandle, data: String) -> Result<bool, String> {
-    let bytes = general_purpose::STANDARD
-        .decode(&data)
-        .map_err(|e| e.to_string())?;
+async fn save_png(app: tauri::AppHandle, request: Request<'_>) -> Result<bool, String> {
+    let InvokeBody::Raw(bytes) = request.body() else {
+        return Err("save_png expects raw PNG bytes".into());
+    };
 
     let (tx, rx) = tokio::sync::oneshot::channel();
 
@@ -20,7 +24,7 @@ async fn save_png(app: tauri::AppHandle, data: String) -> Result<bool, String> {
     match rx.await.map_err(|e| e.to_string())? {
         Some(file_path) => {
             let path = file_path.into_path().map_err(|e| e.to_string())?;
-            std::fs::write(path, &bytes).map_err(|e| e.to_string())?;
+            tokio::fs::write(path, bytes).await.map_err(|e| e.to_string())?;
             Ok(true)
         }
         None => Ok(false), // user cancelled
