@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>LaTeX to PNG</title>
+    <!-- Applies the saved theme before first paint (avoids a light flash in dark mode) -->
+    <script src="theme-init.js"></script>
     <link rel="stylesheet" href="popup.css">
 </head>
 <body>
@@ -21,14 +24,6 @@
                  stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="1" y="2" width="14" height="10" rx="1.5"/>
                 <polyline points="5,14 8,12 11,14"/>
-            </svg>
-        </button>
-        <button id="openTabBtn" class="open-tab-btn" title="Open in new tab" aria-label="Open in new tab">
-            <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor"
-                 stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M7 3H3.5A1.5 1.5 0 0 0 2 4.5v8A1.5 1.5 0 0 0 3.5 14h8A1.5 1.5 0 0 0 13 12.5V9"/>
-                <polyline points="10,2 14,2 14,6"/>
-                <line x1="14" y1="2" x2="7" y2="9"/>
             </svg>
         </button>
     </div>
@@ -97,14 +92,12 @@
         </div>
     </div>
 
-    <div id="mathjax-container" style="display: none;"></div>
-
     <!-- Info / shortcuts overlay -->
     <div id="infoOverlay" class="info-overlay" role="dialog" aria-modal="true" aria-labelledby="infoPanelTitle">
         <div class="info-panel">
             <button id="infoCloseBtn" class="info-close" aria-label="Close">✕</button>
 
-            <h3 id="infoPanelTitle">LaTeX to PNG <span class="info-version">v0.1.0</span></h3>
+            <h3 id="infoPanelTitle">LaTeX to PNG <span id="infoVersion" class="info-version"></span></h3>
             <p class="info-desc">Convert LaTeX math expressions to high-resolution transparent PNGs</p>
 
             <h4>Keyboard Shortcuts</h4>
@@ -129,9 +122,9 @@
             <ul class="features-list">
                 <li>Live preview with MathJax</li>
                 <li>Configurable DPI (150 / 300 / 600)</li>
-                <li>Transparent background</li>
+                <li>Transparent background, DPI embedded in the PNG</li>
                 <li>Customizable text color and padding</li>
-                <li>Light / Dark theme</li>
+                <li>Light / Dark / System theme</li>
                 <li>History and bookmarks</li>
                 <li>Bracket and environment auto-completion</li>
                 <li>LaTeX command autocomplete</li>
@@ -139,13 +132,7 @@
         </div>
     </div>
 
-    <script>
-        window.MathJax = {
-            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
-            svg: { fontCache: 'none' },
-            startup: { typeset: false }
-        };
-    </script>
+    <script src="mathjax-config.js"></script>
     <script src="lib/tex-svg-full.js"></script>
     <script src="popup.js"></script>
 </body>
