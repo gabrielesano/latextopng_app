@@ -85,3 +85,8 @@ LaTeX → MathJax (SVG) → canvas at the chosen DPI → PNG + pHYs (DPI) chunk
 ```
 
 Everything runs locally, and no data leaves your computer. The app is built with [Tauri 2](https://tauri.app) and [MathJax 3](https://www.mathjax.org).
+
+## License
+
+[MIT](LICENSE) © Gabriele Sano.
+The bundled MathJax library is licensed under Apache 2.0 ([notice](ui/lib/LICENSE-MathJax.txt)).
