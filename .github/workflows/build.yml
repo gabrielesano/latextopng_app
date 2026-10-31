@@ -11,6 +11,7 @@ permissions:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - platform: ubuntu-22.04
@@ -19,7 +20,8 @@ jobs:
             target: x86_64-pc-windows-msvc
           - platform: macos-latest
             target: aarch64-apple-darwin
-          - platform: macos-13
+          # Intel build cross-compiled on Apple Silicon (macos-13 runners are retired)
+          - platform: macos-latest
             target: x86_64-apple-darwin
 
     runs-on: ${{ matrix.platform }}
@@ -43,8 +45,13 @@ jobs:
             librsvg2-dev \
             patchelf
 
+      # Downloads a prebuilt tauri-cli instead of compiling it in every job
+      # (cargo-binstall falls back to `cargo install` if no binary is available)
+      - name: Install cargo-binstall
+        uses: cargo-bins/cargo-binstall@main
+
       - name: Install Tauri CLI
-        run: cargo install tauri-cli
+        run: cargo binstall tauri-cli --version "^2" --no-confirm --locked
 
       - name: Build
         run: cargo tauri build --target ${{ matrix.target }}
